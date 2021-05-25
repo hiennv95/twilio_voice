@@ -19,9 +19,9 @@ class TwilioVoice {
   static final TwilioVoice _instance = TwilioVoice._();
   static TwilioVoice get instance => _instance;
 
-  late final Call call;
+   final Call call;
 
-  Stream<CallEvent>? _callEventsListener;
+  Stream<CallEvent> _callEventsListener;
 
   /// Sends call events
   Stream<CallEvent> get callEventsListener {
@@ -30,10 +30,10 @@ class TwilioVoice {
           .receiveBroadcastStream()
           .map((dynamic event) => _parseCallEvent(event));
     }
-    return _callEventsListener!;
+    return _callEventsListener;
   }
 
-  OnDeviceTokenChanged? deviceTokenChanged;
+  OnDeviceTokenChanged deviceTokenChanged;
   void setOnDeviceTokenChanged(OnDeviceTokenChanged deviceTokenChanged) {
     deviceTokenChanged = deviceTokenChanged;
   }
@@ -41,7 +41,7 @@ class TwilioVoice {
   /// register fcm token, and device token for android
   ///
   /// ios device token is obtained internally
-  Future<bool?> setTokens({required String accessToken, String? deviceToken}) {
+  Future<bool> setTokens({ String accessToken, String deviceToken}) {
     return _channel.invokeMethod('tokens', <String, dynamic>{
       "accessToken": accessToken,
       "deviceToken": deviceToken
@@ -59,7 +59,7 @@ class TwilioVoice {
   /// Unregisters from Twilio
   ///
   /// If no accesToken is provided, previously registered accesToken will be used
-  Future<bool?> unregister({String? accessToken}) {
+  Future<bool> unregister({String accessToken}) {
     return _channel.invokeMethod(
         'unregister', <String, dynamic>{"accessToken": accessToken});
   }
@@ -68,38 +68,38 @@ class TwilioVoice {
   ///
   /// Android only, xiamoi devices need special permission to show background call UI
   Future<bool> requiresBackgroundPermissions() {
-    return _channel.invokeMethod<bool?>('requiresBackgroundPermissions',
-        {}).then<bool>((bool? value) => value ?? false);
+    return _channel.invokeMethod<bool>('requiresBackgroundPermissions',
+        {}).then<bool>((bool value) => value ?? false);
   }
 
   /// Requests background permission
   ///
   /// Android only, takes user to android settings to accept background permissions
-  Future<bool?> requestBackgroundPermissions() {
+  Future<bool> requestBackgroundPermissions() {
     return _channel.invokeMethod('requestBackgroundPermissions', {});
   }
 
   /// Checks if device has microphone permission
   Future<bool> hasMicAccess() {
-    return _channel.invokeMethod<bool?>(
-        'hasMicPermission', {}).then<bool>((bool? value) => value ?? false);
+    return _channel.invokeMethod<bool>(
+        'hasMicPermission', {}).then<bool>((bool value) => value ?? false);
   }
 
   /// Request microphone permission
-  Future<bool?> requestMicAccess() {
+  Future<bool> requestMicAccess() {
     return _channel.invokeMethod('requestMicPermission', {});
   }
 
   /// Register clientId for background calls
   ///
   /// Register the client name for incomming calls while calling using ids
-  Future<bool?> registerClient(String clientId, String clientName) {
+  Future<bool> registerClient(String clientId, String clientName) {
     return _channel.invokeMethod('registerClient',
         <String, dynamic>{"id": clientId, "name": clientName});
   }
 
   /// Unegister clientId for background calls
-  Future<bool?> unregisterClient(String clientId) {
+  Future<bool> unregisterClient(String clientId) {
     return _channel
         .invokeMethod('unregisterClient', <String, dynamic>{"id": clientId});
   }
@@ -107,13 +107,13 @@ class TwilioVoice {
   /// Set default caller name for no registered clients
   ///
   /// This caller name will be shown for incomming calls
-  Future<bool?> setDefaultCallerName(String callerName) {
+  Future<bool> setDefaultCallerName(String callerName) {
     return _channel.invokeMethod(
         'defaultCaller', <String, dynamic>{"defaultCaller": callerName});
   }
 
   /// Android-only, shows background call UI
-  Future<bool?> showBackgroundCallUI() {
+  Future<bool> showBackgroundCallUI() {
     return _channel.invokeMethod("backgroundCallUI", {});
   }
 
@@ -121,7 +121,7 @@ class TwilioVoice {
     if (state.startsWith("DEVICETOKEN|")) {
       var token = state.split('|')[1];
       if (deviceTokenChanged != null) {
-        deviceTokenChanged!(token);
+        deviceTokenChanged (token);
       }
       return CallEvent.log;
     } else if (state.startsWith("LOG|")) {
@@ -131,21 +131,21 @@ class TwilioVoice {
     } else if (state.startsWith("Connected|")) {
       call._activeCall = createCallFromState(state, initiated: true);
       print(
-          'Connected - From: ${call._activeCall!.from}, To: ${call._activeCall!.to}, StartOn: ${call._activeCall!.initiated}, Direction: ${call._activeCall!.callDirection}');
+          'Connected - From: ${call._activeCall.from}, To: ${call._activeCall.to}, StartOn: ${call._activeCall.initiated}, Direction: ${call._activeCall.callDirection}');
       return CallEvent.connected;
     } else if (state.startsWith("Ringing|")) {
       call._activeCall =
           createCallFromState(state, callDirection: CallDirection.outgoing);
 
       print(
-          'Ringing - From: ${call._activeCall!.from}, To: ${call._activeCall!.to}, Direction: ${call._activeCall!.callDirection}');
+          'Ringing - From: ${call._activeCall.from}, To: ${call._activeCall.to}, Direction: ${call._activeCall.callDirection}');
 
       return CallEvent.ringing;
     } else if (state.startsWith("Answer")) {
       call._activeCall =
           createCallFromState(state, callDirection: CallDirection.incoming);
       print(
-          'Answer - From: ${call._activeCall!.from}, To: ${call._activeCall!.to}, Direction: ${call._activeCall!.callDirection}');
+          'Answer - From: ${call._activeCall.from}, To: ${call._activeCall.to}, Direction: ${call._activeCall.callDirection}');
 
       return CallEvent.answer;
     } else if (state.startsWith("ReturningCall")) {
@@ -153,7 +153,7 @@ class TwilioVoice {
           createCallFromState(state, callDirection: CallDirection.outgoing);
 
       print(
-          'Returning Call - From: ${call._activeCall!.from}, To: ${call._activeCall!.to}, Direction: ${call._activeCall!.callDirection}');
+          'Returning Call - From: ${call._activeCall.from}, To: ${call._activeCall.to}, Direction: ${call._activeCall.callDirection}');
 
       return CallEvent.returningCall;
     }
@@ -187,7 +187,7 @@ class TwilioVoice {
 }
 
 ActiveCall createCallFromState(String state,
-    {CallDirection? callDirection, bool initiated = false}) {
+    {CallDirection callDirection, bool initiated = false}) {
   List<String> tokens = state.split('|');
   return ActiveCall(
     from: tokens[1],
@@ -201,8 +201,8 @@ ActiveCall createCallFromState(String state,
 }
 
 class Call {
-  ActiveCall? _activeCall;
-  ActiveCall? get activeCall => _activeCall;
+  ActiveCall _activeCall;
+  ActiveCall get activeCall => _activeCall;
 
   final MethodChannel _channel;
   Call(this._channel);
@@ -210,10 +210,10 @@ class Call {
   /// Places new call
   ///
   /// [extraOptions] will be added to the callPayload sent to your server
-  Future<bool?> place(
-      {required String from,
-      required String to,
-      Map<String, dynamic>? extraOptions}) {
+  Future<bool> place(
+      { String from,
+       String to,
+      Map<String, dynamic> extraOptions}) {
     _activeCall =
         ActiveCall(from: from, to: to, callDirection: CallDirection.outgoing);
 
@@ -224,39 +224,39 @@ class Call {
   }
 
   /// Hangs active call
-  Future<bool?> hangUp() {
+  Future<bool> hangUp() {
     return _channel.invokeMethod('hangUp', <String, dynamic>{});
   }
 
   /// Checks if there is an ongoing call
   Future<bool> isOnCall() {
-    return _channel.invokeMethod<bool?>('isOnCall',
-        <String, dynamic>{}).then<bool>((bool? value) => value ?? false);
+    return _channel.invokeMethod<bool>('isOnCall',
+        <String, dynamic>{}).then<bool>((bool value) => value ?? false);
   }
 
   /// Answers incoming call
-  Future<bool?> answer() {
+  Future<bool> answer() {
     return _channel.invokeMethod('answer', <String, dynamic>{});
   }
 
   /// Holds active call
-  Future<bool?> holdCall() {
+  Future<bool> holdCall() {
     return _channel.invokeMethod('holdCall', <String, dynamic>{});
   }
 
   /// Toogles mute state to provided value
-  Future<bool?> toggleMute(bool isMuted) {
+  Future<bool> toggleMute(bool isMuted) {
     return _channel
         .invokeMethod('toggleMute', <String, dynamic>{"muted": isMuted});
   }
 
   /// Toogles speaker state to provided value
-  Future<bool?> toggleSpeaker(bool speakerIsOn) {
+  Future<bool> toggleSpeaker(bool speakerIsOn) {
     return _channel.invokeMethod(
         'toggleSpeaker', <String, dynamic>{"speakerIsOn": speakerIsOn});
   }
 
-  Future<bool?> sendDigits(String digits) {
+  Future<bool> sendDigits(String digits) {
     return _channel
         .invokeMethod('sendDigits', <String, dynamic>{"digits": digits});
   }

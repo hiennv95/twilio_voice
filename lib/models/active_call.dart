@@ -7,14 +7,14 @@ class ActiveCall {
   final String toFormatted;
   final String from;
   final String fromFormatted;
-  final DateTime? initiated;
+  final DateTime initiated;
   final CallDirection callDirection;
 
   ActiveCall({
-    required String from,
-    required String to,
+     String from,
+     String to,
     this.initiated,
-    required this.callDirection,
+    this.callDirection,
   })   : this.to = to.replaceAll("client:", ""),
         this.from = from.replaceAll("client:", ""),
         toFormatted = _prettyPrintNumber(to),
